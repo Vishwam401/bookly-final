@@ -23,6 +23,8 @@ class UserService:
         user_data_dict = user_data.model_dump()
 
         new_user = User(
+            first_name=user_data_dict['first_name'],
+            last_name=user_data_dict['last_name'],
             email=user_data_dict["email"],
             username=user_data_dict["username"]
         )
