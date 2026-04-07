@@ -1,0 +1,10 @@
+setup.py
+bookly_final.egg-info/PKG-INFO
+bookly_final.egg-info/SOURCES.txt
+bookly_final.egg-info/dependency_links.txt
+bookly_final.egg-info/top_level.txt
+src/__init__.py
+src/config.py
+src/main.py
+src/auth/__init__.py
+src/auth/models.py
