@@ -62,23 +62,42 @@ This project demonstrates building a production-style backend with clean archite
 ## 📂 Project Structure
 
 ```
-src/
- ├── main.py          # Entry point
- ├── config.py        # Settings & environment variables
- ├── db/
- │    ├── database.py # DB connection
- │    
+bookly/
+ ├── alembic/                # migrations
+ ├── src/
  │
- ├── books/
- |    ├── models.py   # ORM models
- │    ├── routes.py   # API endpoints
- │    ├── service.py  # Business logic
- │    ├── schemas.py  # Pydantic models
+ │   ├── main.py             # FastAPI entry point
+ │   ├── config.py           # settings (.env handling)
  │
- ├── auth/ (in progress)
- │    ├── routes.py
- │    ├── service.py
- │    ├── schemas.py
+ │   ├── db/
+ │   │    ├── database.py    # engine + session
+ │   │    └── __init__.py
+ │
+ │   ├── auth/               # AUTH MODULE
+ │   │    ├── models.py
+ │   │    ├── schemas.py
+ │   │    ├── routes.py
+ │   │    ├── service.py
+ │   │    ├── utils.py       # hashing, JWT
+ │   │    └── __init__.py
+ │
+ │   ├── books/              # BOOK MODULE
+ │   │    ├── models.py
+ │   │    ├── schemas.py
+ │   │    ├── routes.py
+ │   │    ├── service.py
+ │   │    └── __init__.py
+ │
+ │   ├── core/               # (future use)
+ │   │    ├── security.py    # JWT / dependencies
+ │   │    └── exceptions.py
+ │
+ │   └── __init__.py
+ │
+ ├── .env
+ ├── alembic.ini
+ ├── README.md
+ └── requirements.txt
 ```
 
 ---
