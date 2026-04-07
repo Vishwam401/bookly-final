@@ -67,9 +67,10 @@ src/
  ├── config.py        # Settings & environment variables
  ├── db/
  │    ├── database.py # DB connection
- │    ├── models.py   # ORM models
+ │    
  │
  ├── books/
+ |    ├── models.py   # ORM models
  │    ├── routes.py   # API endpoints
  │    ├── service.py  # Business logic
  │    ├── schemas.py  # Pydantic models
