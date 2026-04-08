@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 import sqlalchemy.dialects.postgresql as pg
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Column
 
 
 class User(SQLModel, table=True):
@@ -16,6 +16,9 @@ class User(SQLModel, table=True):
     email: str
     first_name: str
     last_name: str
+    role: str = Field(Column(
+        pg.VARCHAR, nullable=False, server_default="user"
+    ))
     is_verified: bool = Field(default=False)
     hashed_password: str = Field(exclude=True)
     created_at: datetime = Field(default_factory=datetime.now)

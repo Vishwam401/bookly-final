@@ -20,7 +20,6 @@ app = FastAPI(
     title="Bookly API",
     description="A REST API for managing books",
     version="v1",
-    lifespan=lifespan
 )
 
 # ✅ Router include (prefix + tags)
