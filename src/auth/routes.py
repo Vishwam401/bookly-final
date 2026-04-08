@@ -13,6 +13,8 @@ user_service = UserService()
 
 REFRESH_TOKEN_EXPIRY=True
 
+#bearer Token
+
 @auth_router.post(
     '/signup',
     response_model=UserModel,
