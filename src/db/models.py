@@ -1,0 +1,89 @@
+
+import sqlalchemy.dialects.postgresql as pg
+import uuid
+
+from sqlalchemy import Column
+from datetime import datetime, date
+from typing import Optional, List
+from sqlmodel import SQLModel, Field, Relationship
+
+
+
+
+
+class Book(SQLModel, table=True):
+        __tablename__ = "books"
+        id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+        title: str
+        author: str
+        description: str | None = None
+
+        price: float
+        rating: float
+        pages: int
+        user_uid: Optional[uuid.UUID] = Field(default=None, foreign_key='users.uid')
+
+        language: str
+        is_available: bool = True
+        created_at: datetime = Field(default_factory=datetime.now)
+        updated_at: datetime = Field(default_factory=datetime.now)
+        user: Optional["User"] = Relationship(back_populates="books")
+        reviews: List["Review"] = Relationship(back_populates="book", sa_relationship_kwargs={'lazy': 'selectin'})
+
+        def __repr__(self):
+            return f"<Book {self.title}>"
+
+
+
+class User(SQLModel, table=True):
+    __tablename__= 'users'
+    uid : uuid.UUID = Field(
+            default_factory=uuid.uuid4,
+            nullable=False,
+            primary_key=True
+
+    )
+    username: str
+    email: str
+    first_name: str
+    last_name: str
+    role: str = Field(Column(
+        pg.VARCHAR, nullable=False, server_default="user"
+    ))
+    is_verified: bool = Field(default=False)
+
+    hashed_password: str = Field(exclude=True)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
+    books: List["Book"] = Relationship(back_populates="user", sa_relationship_kwargs={'lazy': 'selectin'})
+    reviews: List["Review"] = Relationship(back_populates="user", sa_relationship_kwargs={'lazy': 'selectin'})
+
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+
+
+class Review(SQLModel, table=True):
+        __tablename__=("reviews"
+                       "")
+        uid: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+
+        rating: int = Field(lt=5)
+        review_text : str
+        user_uid: Optional[uuid.UUID] = Field(default=None, foreign_key='users.uid')
+        book_uid: Optional[uuid.UUID] = Field(default=None, foreign_key='books.id')
+        created_at: datetime = Field(default_factory=datetime.now)
+        updated_at: datetime = Field(default_factory=datetime.now)
+        user: Optional["User"] = Relationship(back_populates="reviews")
+        book: Optional["Book"] = Relationship(back_populates="reviews")
+
+
+        def __repr__(self):
+            return f"<Review for book {self.book_uid} by user {self.user_uid}>"
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-from .models import User
+from ..db.models import User
 from .schemas import UserCreateModel
 from .utils import generate_passwd_hash
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -35,6 +35,8 @@ class UserService:
         session.add(new_user)
 
         await session.commit()
+        await session.refresh(new_user)
+
         return new_user
 
 

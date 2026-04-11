@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from src.db.database import init_db
 from src.books.routes import books_router
 from src.auth.routes import auth_router
+from .reviews.routes import review_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,4 +34,10 @@ app.include_router(
     auth_router,
     prefix="/api/v1/auth",
     tags=["auth"]
+)
+
+app.include_router(
+    review_router,
+    prefix="/api/v1/reviews",
+    tags=["reviews"]
 )
