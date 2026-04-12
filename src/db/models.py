@@ -7,6 +7,25 @@ from sqlalchemy import Column
 from sqlmodel import Field, Relationship, SQLModel
 
 
+class BookTag(SQLModel, table=True):
+    __tablename__ = "book_tags"
+
+    book_id: uuid.UUID = Field(foreign_key="books.id", primary_key=True)
+    tag_id: uuid.UUID = Field(foreign_key="tags.id", primary_key=True)
+
+
+class Tag(SQLModel, table=True):
+    __tablename__ = "tags"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(sa_column=Column(pg.VARCHAR, unique=True))
+
+    books: List["Book"] = Relationship(
+        back_populates="tags",
+        link_model=BookTag
+    )
+
+
 class Book(SQLModel, table=True):
     __tablename__ = "books"
 
@@ -29,6 +48,12 @@ class Book(SQLModel, table=True):
         back_populates="book",
         sa_relationship_kwargs={"lazy": "selectin"},
     )
+    tags: List["Tag"] = Relationship(
+        back_populates="books",
+        link_model=BookTag,
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+
 
     def __repr__(self):
         return f"<Book {self.title}>"
@@ -79,3 +104,5 @@ class Review(SQLModel, table=True):
 
     def __repr__(self):
         return f"<Review for book {self.book_uid} by user {self.user_uid}>"
+
+

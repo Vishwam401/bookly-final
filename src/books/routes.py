@@ -3,9 +3,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel.ext.asyncio.session import AsyncSession
+from starlette.status import HTTP_204_NO_CONTENT
 
 from src.auth.dependencies import AccessTokenBearer, RoleChecker
-from src.books.schemas import BookCreate, BookDetail, BookUpdate
+from src.books.schemas import BookCreate, BookDetail, BookUpdate, TagModel, TagCreateModel
 from src.books.service import BookService
 from src.db.database import get_session
 
@@ -56,8 +57,8 @@ async def get_book_by_id(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
     return book
 
-
-@books_router.post("/", status_code=status.HTTP_201_CREATED, dependencies=[role_checker_all])
+#create books with tags
+@books_router.post("/", status_code=status.HTTP_201_CREATED, dependencies=[role_checker_all], response_model=BookDetail)
 async def create_book(
     data: BookCreate,
     session: AsyncSession = Depends(get_session),
@@ -65,6 +66,31 @@ async def create_book(
 ):
     user_uid = token_details.get("user", {}).get("user_uid")
     return await book_service.create_book(data, user_uid, session)
+
+
+@books_router.get("/tags/all", response_model=List[TagModel])
+async def get_all_tags(session: AsyncSession= Depends(get_session)):
+    return await book_service.get_all_tags(session)
+
+
+#Ek existing book ko exisitng tag se jogne ke liye
+@books_router.post("/{book_id}/tags/{tag_id}", dependencies=[role_checker_all])
+async def link_tag_to_book(
+        book_id: str,
+        tag_id:str,
+        session: AsyncSession = Depends(get_session)
+):
+    result = await book_service.add_tag_to_book(book_id, tag_id, session)
+    if not result:
+        raise HTTPException(status_code=404, detail="cannot find book or tag")
+    return{"message": "Tag successfully linked"}
+
+@books_router.post("/tags", response_model=TagModel, dependencies=[role_checker_admin])
+async def create_new_tag(
+        tag_data: TagCreateModel,
+        session:AsyncSession = Depends(get_session),
+):
+    return await book_service.create_tag(tag_data, session)
 
 
 @books_router.put("/{book_id}", dependencies=[role_checker_all])
@@ -89,3 +115,16 @@ async def delete_book(
     success = await book_service.delete_book(book_id, session)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+
+
+@books_router.put("/tags/{tag_id}", status_code=HTTP_204_NO_CONTENT, dependencies=[role_checker_admin])
+async def delete_tag(
+    tag_id: str,
+    session: AsyncSession = Depends(get_session),
+    token_details: dict = Depends(access_token_bearer),
+):
+    success = await book_service.delete_tag(tag_id, session)
+
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tag not found")
+    return None

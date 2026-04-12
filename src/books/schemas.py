@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
@@ -6,6 +7,12 @@ from pydantic import BaseModel
 
 from src.reviews.schemas import ReviewModel
 
+class TagCreateModel(BaseModel):
+    name: str
+
+class TagModel(BaseModel):
+    id: uuid.UUID
+    name: str
 
 class BookCreate(BaseModel):
     title: str
@@ -15,6 +22,7 @@ class BookCreate(BaseModel):
     pages: int
     language: str
     rating: float
+    tag_names: Optional[List[str]] = None
 
 
 class BookUpdate(BaseModel):
@@ -26,6 +34,7 @@ class BookUpdate(BaseModel):
     pages: Optional[int] = None
     language: Optional[str] = None
     is_available: Optional[bool] = None
+    tag_names: Optional[List[str]] = None
 
 
 class BookRead(BaseModel):
@@ -36,6 +45,7 @@ class BookRead(BaseModel):
     language: str
     created_at: datetime
     updated_at: datetime
+    tags: List[TagModel]
 
 
 class BookDetail(BookRead):
