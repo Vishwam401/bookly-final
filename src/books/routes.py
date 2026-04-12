@@ -9,10 +9,12 @@ from src.auth.dependencies import AccessTokenBearer, RoleChecker
 from src.books.schemas import BookCreate, BookDetail, BookUpdate, TagModel, TagCreateModel
 from src.books.service import BookService
 from src.db.database import get_session
+from src.errors import BookNotFound, TagNotFound
 
 
 books_router = APIRouter()
 book_service = BookService()
+
 access_token_bearer = AccessTokenBearer()
 role_checker_all = Depends(RoleChecker(allowed_roles=["admin", "user"]))
 role_checker_admin = Depends(RoleChecker(allowed_roles=["admin"]))
@@ -54,7 +56,7 @@ async def get_book_by_id(
 ):
     book = await book_service.get_book_by_id(book_id, session)
     if not book:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        raise BookNotFound
     return book
 
 #create books with tags
@@ -82,7 +84,7 @@ async def link_tag_to_book(
 ):
     result = await book_service.add_tag_to_book(book_id, tag_id, session)
     if not result:
-        raise HTTPException(status_code=404, detail="cannot find book or tag")
+        raise TagNotFound()
     return{"message": "Tag successfully linked"}
 
 @books_router.post("/tags", response_model=TagModel, dependencies=[role_checker_admin])
@@ -102,7 +104,7 @@ async def update_book(
 ):
     book = await book_service.update_book(book_id, data, session)
     if not book:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        raise BookNotFound()
     return book
 
 
@@ -114,7 +116,7 @@ async def delete_book(
 ):
     success = await book_service.delete_book(book_id, session)
     if not success:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+        raise BookNotFound()
 
 
 @books_router.put("/tags/{tag_id}", status_code=HTTP_204_NO_CONTENT, dependencies=[role_checker_admin])
@@ -126,5 +128,5 @@ async def delete_tag(
     success = await book_service.delete_tag(tag_id, session)
 
     if not success:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tag not found")
+        raise TagNotFound()
     return None

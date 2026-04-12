@@ -16,6 +16,7 @@ from .service import UserService
 from .utils import create_access_token, verify_password
 from src.db.database import get_session
 from src.db.redis import add_jti_to_blocklist
+from src.errors import UserAlreadyExists, UserNotFound, InvalidCredentials, InvalidToken
 
 
 auth_router = APIRouter()
@@ -33,10 +34,7 @@ async def create_user_account(
     user_exists = await user_service.user_exists(user_data.email, session)
 
     if user_exists:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User with this email already exists",
-        )
+        raise UserAlreadyExists
 
     new_user = await user_service.create_user(user_data, session)
     return new_user
@@ -67,10 +65,7 @@ async def login_user(
             }
         )
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid email or password",
-    )
+    raise InvalidCredentials
 
 
 @auth_router.get("/refresh-token")
@@ -81,10 +76,7 @@ async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer(
         new_access_token = create_access_token(user_data=token_details["user"])
         return JSONResponse(content={"access_token": new_access_token})
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Refresh token has expired",
-    )
+    raise InvalidToken
 
 
 @auth_router.get("/me", response_model=UserBooksModel)
