@@ -1,9 +1,12 @@
-from pydantic import BaseModel, Field
 import uuid
 from datetime import datetime
-from typing import List, Optional
+from typing import List
+
+from pydantic import BaseModel, Field
+
 from src.books.schemas import BookCreate
-from ..reviews.schemas import ReviewModel
+from src.reviews.schemas import ReviewModel
+
 
 class UserCreateModel(BaseModel):
     first_name: str = Field(max_length=25)
@@ -11,6 +14,7 @@ class UserCreateModel(BaseModel):
     username: str = Field(max_length=10)
     email: str = Field(max_length=40)
     password: str = Field(min_length=7, max_length=72)
+
 
 class UserModel(BaseModel):
     username: str
@@ -21,13 +25,14 @@ class UserModel(BaseModel):
     hashed_password: str = Field(exclude=True)
     created_at: datetime
     updated_at: datetime
-    books:List[BookCreate]
+    books: List[BookCreate]
+
 
 class UserBooksModel(UserModel):
     books: List[BookCreate]
     reviews: List[ReviewModel]
 
-class UserLogicModel(BaseModel):
+
+class UserLoginModel(BaseModel):
     email: str = Field(max_length=40)
     password: str = Field(min_length=7, max_length=72)
-

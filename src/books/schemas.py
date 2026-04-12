@@ -1,13 +1,16 @@
-from pydantic import BaseModel
 from datetime import datetime
-from ..reviews.schemas import ReviewModel
+from typing import List, Optional
 from uuid import UUID
-from typing import List
+
+from pydantic import BaseModel
+
+from src.reviews.schemas import ReviewModel
+
 
 class BookCreate(BaseModel):
     title: str
     author: str
-    description: str | None = None
+    description: Optional[str] = None
     price: float
     pages: int
     language: str
@@ -15,14 +18,15 @@ class BookCreate(BaseModel):
 
 
 class BookUpdate(BaseModel):
-     title: str | None = None
-     author: str | None = None
-     description: str | None = None
-     price: float | None = None
-     rating: float | None = None
-     pages: int | None = None
-     language: str | None = None
-     is_available: bool | None = None
+    title: Optional[str] = None
+    author: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    rating: Optional[float] = None
+    pages: Optional[int] = None
+    language: Optional[str] = None
+    is_available: Optional[bool] = None
+
 
 class BookRead(BaseModel):
     id: UUID
@@ -33,5 +37,6 @@ class BookRead(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-class  BookDetail(BookRead):
+
+class BookDetail(BookRead):
     reviews: List[ReviewModel]

@@ -1,43 +1,35 @@
-from ..db.models import User
-from .schemas import UserCreateModel
-from .utils import generate_passwd_hash
-from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.db.models import User
+from src.auth.schemas import UserCreateModel
+from src.auth.utils import generate_passwd_hash
+
 
 class UserService:
     async def get_user_by_email(self, email: str, session: AsyncSession):
         statement = select(User).where(User.email == email)
-
         result = await session.execute(statement)
+        return result.scalar()
 
-        user = result.scalar()
-
-        return user
-
-    async def user_exists(self, email, session: AsyncSession):
+    async def user_exists(self, email: str, session: AsyncSession) -> bool:
         user = await self.get_user_by_email(email, session)
+        return user is not None
 
-        return True if user is not None else False
-
-    async def create_user(self, user_data: UserCreateModel,session: AsyncSession ):
-        user_data_dict = user_data.model_dump()
+    async def create_user(self, user_data: UserCreateModel, session: AsyncSession) -> User:
+        user_dict = user_data.model_dump()
 
         new_user = User(
-            first_name=user_data_dict['first_name'],
-            last_name=user_data_dict['last_name'],
-            email=user_data_dict["email"],
-            username=user_data_dict["username"]
+            first_name=user_dict["first_name"],
+            last_name=user_dict["last_name"],
+            email=user_dict["email"],
+            username=user_dict["username"],
+            hashed_password=generate_passwd_hash(user_dict["password"]),
+            role="user",
         )
 
-        new_user.hashed_password = generate_passwd_hash(user_data_dict['password'])
-        new_user.role = "user"
-
         session.add(new_user)
-
         await session.commit()
         await session.refresh(new_user)
 
         return new_user
-
-
-
