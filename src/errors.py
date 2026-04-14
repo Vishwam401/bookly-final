@@ -50,6 +50,10 @@ class UserNotFound(BooklyException):
     """User not found."""
     pass
 
+class AccountNotVerified(Exception):
+    """Account not yet verified"""
+    pass
+
 def create_exception_handler(
     status_code: int, initial_detail: Any
 ) -> Callable[[Request, Exception], JSONResponse]:
@@ -174,6 +178,19 @@ def register_all_errors(app: FastAPI):
             }
         )
     )
+
+    app.add_exception_handler(
+        AccountNotVerified,
+        create_exception_handler(
+            status_code=status.HTTP_403_FORBIDDEN,
+            initial_detail={
+                "message": "User with that email doesn't have verified account.",
+                "error_code": "USER_NOT_VERIFIED",
+                "resolution": "Please check your email for verification.",
+            }
+        )
+    )
+
 
     @app.exception_handler(500)
     async def internal_server_error(request, exc):
