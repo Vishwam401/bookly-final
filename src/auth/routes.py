@@ -11,12 +11,13 @@ from src.auth.dependencies import (
     RoleChecker,
     get_current_user,
 )
-from .schemas import UserBooksModel, UserCreateModel, UserLoginModel, UserModel
+from .schemas import UserBooksModel, UserCreateModel, UserLoginModel, UserModel, EmailModel
 from .service import UserService
 from .utils import create_access_token, verify_password
 from src.db.database import get_session
 from src.db.redis import add_jti_to_blocklist
 from src.errors import UserAlreadyExists, UserNotFound, InvalidCredentials, InvalidToken
+from src.mail import mail, create_message
 
 
 auth_router = APIRouter()
@@ -24,6 +25,22 @@ user_service = UserService()
 role_checker = RoleChecker(allowed_roles=["admin", "user"])
 
 REFRESH_TOKEN_EXPIRY_DAYS = 2  # how long refresh token lasts
+
+@auth_router.post('/send_mail')
+async def sending_mail(emails:EmailModel):
+    emails = emails.addresses
+
+    html = "<h1>Welcome to the app</h1>"
+
+    message = create_message(
+        recipient=emails,
+        subject="Welcome",
+        body=html,
+    )
+
+    await mail.send_message(message)
+
+    return {"message": "Email sent successfully"}
 
 
 @auth_router.post("/signup", response_model=UserModel, status_code=status.HTTP_201_CREATED)
