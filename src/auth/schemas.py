@@ -9,9 +9,9 @@ from src.reviews.schemas import ReviewModel
 
 
 class UserCreateModel(BaseModel):
-    first_name: str = Field(max_length=25)
-    last_name: str = Field(max_length=25)
-    username: str = Field(max_length=10)
+    first_name: str = Field(max_length=50)
+    last_name: str = Field(max_length=50)
+    username: str = Field(max_length=50)
     email: str = Field(max_length=40)
     password: str = Field(min_length=7, max_length=72)
 
