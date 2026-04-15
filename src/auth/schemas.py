@@ -12,7 +12,7 @@ class UserCreateModel(BaseModel):
     first_name: str = Field(max_length=50)
     last_name: str = Field(max_length=50)
     username: str = Field(max_length=50)
-    email: str = Field(max_length=40)
+    email: str = Field(max_length=100)
     password: str = Field(min_length=7, max_length=72)
 
 
@@ -34,7 +34,7 @@ class UserBooksModel(UserModel):
 
 
 class UserLoginModel(BaseModel):
-    email: str = Field(max_length=40)
+    email: str = Field(max_length=100)
     password: str = Field(min_length=7, max_length=72)
 
 class EmailModel(BaseModel):

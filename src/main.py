@@ -22,6 +22,7 @@ app = FastAPI(
     description="A REST API for managing books, reviews, and tags",
     version="v1",
     docs_url=f"/api/v1/docs",
+    openapi_url="/api/v1/openapi.json",
     redoc_url=f"/api/v1/redoc",
     contact={
         "email": "vishwamvaghasiya401@gmail.com"
