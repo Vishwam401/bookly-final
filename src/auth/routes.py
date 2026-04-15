@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, BackgroundTasks
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -17,9 +17,11 @@ from .utils import create_access_token, verify_password, create_url_safe_token, 
 from src.db.database import get_session
 from src.db.redis import add_jti_to_blocklist
 from src.errors import UserAlreadyExists, UserNotFound, InvalidCredentials, InvalidToken
-from src.mail import mail, create_message
 from src.config import Config
 from src.db.database import get_session
+from src.celery_tasks import send_email
+from src.mail import mail, create_message
+
 
 
 auth_router = APIRouter()
@@ -33,14 +35,9 @@ async def sending_mail(emails:EmailModel):
     emails = emails.addresses
 
     html = "<h1>Welcome to the app</h1>"
+    subject = "Welcome to our app"
 
-    message = create_message(
-        recipient=emails,
-        subject="Welcome",
-        body=html,
-    )
-
-    await mail.send_message(message)
+    send_email.delay(emails, subject,html)
 
     return {"message": "Email sent successfully"}
 
@@ -48,6 +45,7 @@ async def sending_mail(emails:EmailModel):
 @auth_router.post("/signup",  status_code=status.HTTP_201_CREATED)
 async def create_user_account(
     user_data: UserCreateModel,
+    bg_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_session),
 ):
     email = user_data.email
@@ -62,23 +60,22 @@ async def create_user_account(
 
     link = f"http://{Config.DOMAIN}/api/v1/auth/verify/{token}"
 
-    html_message = f"""
+    html = f"""
     <h1>verify your Email<h2>
     <p>Please click this <a href="{link}">link</a> to verify your email:</p>
     """
+    emails =[email]
+    subject = "Verify Your email"
 
-    message = create_message(
-        recipient=[email],
-        subject="Verify your Email",
-        body=html_message,
-    )
 
-    await mail.send_message(message)
+    send_email.delay(emails, subject, html)
 
     return {
-        "message":"Account Created! Check email to verify your account",
-        "user":new_user
+        "message": "Account Created! check email to verify your account",
+        "user": new_user,
     }
+
+
 
 
 @auth_router.get('/verify/{token}')
@@ -173,7 +170,7 @@ async def revoke_token(token_details: dict = Depends(RefreshTokenBearer())):
 
 
 @auth_router.post('/password-reset-request')
-async def password_reset_request(email_data:PasswordResetRequestModel):
+async def password_reset_request(email_data: PasswordResetRequestModel):
     email = email_data.email
 
     token = create_url_safe_token({"email": email})
@@ -181,22 +178,17 @@ async def password_reset_request(email_data:PasswordResetRequestModel):
     link = f"http://{Config.DOMAIN}/api/v1/auth/password-reset-confirm/{token}"
 
     html_message = f"""
-        <h1>Reset Your Password<h2>
+        <h1>Reset Your Password</h1>
         <p>Please click this <a href="{link}">link</a> to Reset Your Password:</p>
         """
 
-    message = create_message(
-        recipient=[email],
-        subject="Reset Your Password",
-        body=html_message,
-    )
+    subject = "Reset Your Password"
 
-    await mail.send_message(message)
+
+    send_email.delay([email], subject, html_message)
 
     return JSONResponse(
-        content={
-            "message": "Password reset link sent successfully",
-        },
+        content={"message": "Password reset link sent successfully"},
         status_code=status.HTTP_200_OK,
     )
 
